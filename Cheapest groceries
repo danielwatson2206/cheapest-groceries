@@ -1,18 +1,153 @@
-cheapest-groceries/
-│
-├─ pages/
-│   ├─ index.tsx         # Home page
-│   └─ _app.tsx          # App wrapper
-│
-├─ components/
-│   ├─ ProductList.tsx   # List of products with checkboxes
-│   ├─ Basket.tsx        # Shows current basket & totals
-│
-├─ lib/
-│   └─ data.ts           # Starter product & price data
-│
-├─ styles/
-│   └─ globals.css       # Tailwind imports
-│
-├─ package.json
-└─ tailwind.config.js
+export type Product = {
+  id: number;
+  name: string;
+  unit: string; // e.g., "2L", "1kg"
+  prices: { supermarket: string; price: number }[];
+};
+
+export const products: Product[] = [
+  {
+    id: 1,
+    name: "Milk (2L, own brand)",
+    unit: "2L",
+    prices: [
+      { supermarket: "Countdown", price: 3.89 },
+      { supermarket: "Pak'nSave", price: 3.49 },
+      { supermarket: "New World", price: 3.79 },
+    ],
+  },
+  {
+    id: 2,
+    name: "White Bread (700g, own brand)",
+    unit: "700g",
+    prices: [
+      { supermarket: "Countdown", price: 2.50 },
+      { supermarket: "Pak'nSave", price: 2.30 },
+      { supermarket: "New World", price: 2.45 },
+    ],
+  },
+  {
+    id: 3,
+    name: "Eggs (size 7, 12 pack)",
+    unit: "12 pack",
+    prices: [
+      { supermarket: "Countdown", price: 5.00 },
+      { supermarket: "Pak'nSave", price: 4.75 },
+      { supermarket: "New World", price: 4.90 },
+    ],
+  },
+  // Add more products here (up to 40)
+];
+import { Product } from "../lib/data";
+
+type Props = {
+  products: Product[];
+  selected: number[];
+  toggleProduct: (id: number) => void;
+};
+
+export default function ProductList({ products, selected, toggleProduct }: Props) {
+  return (
+    <div className="space-y-2">
+      {products.map((p) => (
+        <div key={p.id} className="flex items-center justify-between p-2 border rounded">
+          <label className="flex-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected.includes(p.id)}
+              onChange={() => toggleProduct(p.id)}
+              className="mr-2"
+            />
+            {p.name}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
+}
+import { Product } from "../lib/data";
+
+type Props = {
+  products: Product[];
+  selected: number[];
+};
+
+export default function Basket({ products, selected }: Props) {
+  if (selected.length === 0) return <p>No items selected</p>;
+
+  const basket = products.filter((p) => selected.includes(p.id));
+
+  // Calculate total per supermarket
+  const supermarkets = ["Countdown", "Pak'nSave", "New World"];
+  const totals = supermarkets.map((s) => {
+    const total = basket.reduce((sum, p) => {
+      const price = p.prices.find((x) => x.supermarket === s)?.price || 0;
+      return sum + price;
+    }, 0);
+    return { supermarket: s, total };
+  });
+
+  // Find cheapest
+  const cheapest = totals.reduce((min, curr) => (curr.total < min.total ? curr : min), totals[0]);
+
+  return (
+    <div className="mt-4 p-2 border rounded">
+      <h2 className="text-lg font-bold mb-2">Basket Summary</h2>
+      <ul className="mb-2">
+        {basket.map((p) => (
+          <li key={p.id}>{p.name}</li>
+        ))}
+      </ul>
+      <div>
+        {totals.map((t) => (
+          <p key={t.supermarket}>
+            {t.supermarket}: ${t.total.toFixed(2)}
+          </p>
+        ))}
+      </div>
+      <p className="mt-2 font-bold text-green-600">
+        Cheapest: {cheapest.supermarket} (${cheapest.total.toFixed(2)})
+      </p>
+    </div>
+  );
+}
+import { useState } from "react";
+import { products } from "../lib/data";
+import ProductList from "../components/ProductList";
+import Basket from "../components/Basket";
+
+export default function Home() {
+  const [selected, setSelected] = useState<number[]>([]);
+
+  const toggleProduct = (id: number) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Cheapest Grocery Finder</h1>
+      <ProductList products={products} selected={selected} toggleProduct={toggleProduct} />
+      <Basket products={products} selected={selected} />
+    </div>
+  );
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+lib/
+components/
+pages/
+styles/

@@ -1,0 +1,18 @@
+cheapest-groceries/
+│
+├─ pages/
+│   ├─ index.tsx         # Home page
+│   └─ _app.tsx          # App wrapper
+│
+├─ components/
+│   ├─ ProductList.tsx   # List of products with checkboxes
+│   ├─ Basket.tsx        # Shows current basket & totals
+│
+├─ lib/
+│   └─ data.ts           # Starter product & price data
+│
+├─ styles/
+│   └─ globals.css       # Tailwind imports
+│
+├─ package.json
+└─ tailwind.config.js
